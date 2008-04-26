@@ -301,7 +301,37 @@ begin
         s.should_not be_nil
         s.host.should_not be_nil
         s.host.id.should == 10
+        
+        h = repository(:sqlite3).all(Host, :id => 10).first
+        h.should_not be_nil
       end
+
+      it "should return associated objects that belong to the same repository" do
+        repository(:sqlite3) do |r|
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+          r.save(h)
+        end
+        repository(:sqlite3) do |r|
+          s = r.all(Slice, :id => 10).first
+          s.repository.should == s.host.repository
+        end
+      end
+      
+      it "should return the same object when found directly or through an association" do
+        repository(:sqlite3) do |r|
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+          r.save(h)
+        end
+        repository(:sqlite3) do |r|
+          s = r.all(Slice, :id => 10).first
+          h = r.all(Host, :id => 10).first
+          s.host.should == h
+          s.repository.should == h.repository
+        end
+      end
+      
 
       #      describe '#through' do
       #        before(:all) do

@@ -92,7 +92,8 @@ module DataMapper
   def self.repository(name = nil) # :yields: current_context
     # TODO return context.last if last.name == name (arg)
     current_repository = if name
-      Repository.new(name)
+      Repository.context.find { |r| r.name == name} || Repository.new(name)
+      # Repository.new(name)
     else
       Repository.context.last || Repository.new(Repository.default_name)
     end
